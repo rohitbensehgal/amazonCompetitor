@@ -21,6 +21,18 @@ public class Warehouse {
 	public void setWorkers(ArrayList<WarehouseWorker> workers) {
 		this.workers = workers;
 	}
+	public void decrementItem(Item item) {
+		for(Item i : items) {
+			if(item.equals(i)) {
+				if(i.getNumItems() >1) {
+					i.setNumItems(i.getNumItems()-1);
+				}else {
+					i.setNumItems(i.getNumItems()-1);
+					i.setActiveStatus(false);
+				}
+			}
+		}
+	}
 	public ArrayList<WarehouseWorker> getAvailableWorkers(){
 		ArrayList<WarehouseWorker> workingWorkers = new ArrayList();
 		for(WarehouseWorker worker : workers) {

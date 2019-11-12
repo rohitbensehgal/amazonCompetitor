@@ -10,6 +10,11 @@ public class Cart {
 		this.numItems = items.size();
 	}
 	
+	public Cart() {
+		this.items = new ArrayList();
+		// TODO Auto-generated constructor stub
+	}
+
 	public ArrayList<Item> getItems() {
 		return items;
 	}
