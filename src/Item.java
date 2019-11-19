@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Item {
 
@@ -6,6 +8,7 @@ public class Item {
 	private boolean isActive;
 	private String name;
 	private String description;
+	private ArrayList<Review> reviews;
 	
 	Item(int price, int numItems, boolean activeStatus, String name, String description){
 		this.price = price;
@@ -13,6 +16,10 @@ public class Item {
 		this.isActive = activeStatus;
 		this.name = name;
 		this.description = description;
+		this.reviews = new ArrayList<Review>();
+	}
+	public ArrayList<Review> getReviews(){
+		return reviews;
 	}
 	public int getPrice() {
 		return price;

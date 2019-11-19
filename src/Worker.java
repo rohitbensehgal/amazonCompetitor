@@ -1,22 +1,15 @@
 
-public class Worker {
+public class Worker{
 	
-	public String name;
+	// public String name;
+	public String username;
 	public int hours;
 	public int salary;
 	
-	Worker(String name, int hours, int salary){
-		this.name = name;
+	Worker(String username, int hours, int salary){
+		this.username = username;
 		this.hours = hours;
 		this.salary = salary;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public int getHours() {

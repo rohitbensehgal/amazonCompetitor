@@ -7,6 +7,12 @@ public class Customer {
 	private Cart cart;
 	private ArrayList<Reciept> reciepts;
 	
+	Customer(String username, Cart cart) {
+		this.username = username;
+		this.cart = cart;
+		reciepts = new ArrayList<Reciept>();
+	}
+
 	Customer(String username, String cardNumber, Cart cart){
 		this.username = username;
 		this.cardNumber = cardNumber;

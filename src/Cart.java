@@ -4,7 +4,16 @@ public class Cart {
 	
 	private ArrayList<Item> items;
 	private int numItems;
+	private int discount;
 	
+	public int getDiscount() {
+		return discount;
+	}
+
+	public void setDiscount(int discount) {
+		this.discount = discount;
+	}
+
 	Cart(ArrayList<Item> items){
 		this.items = items;
 		this.numItems = items.size();
