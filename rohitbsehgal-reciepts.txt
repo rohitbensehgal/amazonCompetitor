@@ -1,0 +1,35 @@
+2
+20
+130,29,1,chromebook,bad phone,3-best cell laptop;5-good thing;3-
+10,139,1,samsung galaxy,galaxy,1-bad phone
+2019-12-02 15:05:32.429
+120
+20
+1
+0
+20,118,1,iphone,apple,5-good cell phone
+2019-12-02 15:06:10.966
+20
+0
+2
+50
+120,9,1,blackberry,bad phone,1-tis a cellphone
+130,28,1,chromebook,bad phone
+2019-12-02 17:44:29.804
+200
+50
+4
+50
+130,28,1,chromebook,bad phone,3-best cell laptop;5-good thing
+20,118,1,iphone,apple,5-good cell phone;5-good cell phone
+130,28,1,chromebook,bad phone,3-best cell laptop;5-good thing
+12,12,1,new item,wasd
+2019-12-03 15:20:47.116
+242
+50
+1
+100
+1170,99,1,whiteberry,random phone,2-a cellphonne
+2019-12-03 15:26:40.255
+1070
+100

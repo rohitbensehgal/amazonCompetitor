@@ -35,4 +35,8 @@ public class Review implements Comparator<Review> {
 		// TODO Auto-generated method stub
 		return o1.getStars() - o2.getStars();
 	}
+	
+	public String toDBString() {
+		return this.stars + "-" + this.review;
+	}
 }

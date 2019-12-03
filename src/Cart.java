@@ -20,7 +20,7 @@ public class Cart {
 	}
 	
 	public Cart() {
-		this.items = new ArrayList();
+		this.items = new ArrayList<>();
 		// TODO Auto-generated constructor stub
 	}
 

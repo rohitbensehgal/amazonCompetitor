@@ -17,6 +17,9 @@ public class Reciept {
 		this.cart = cart;
 		this.timeOfPurchase = timeOfPurchase;
 	}
+	public Reciept() {
+		// TODO Auto-generated constructor stub
+	}
 	public int getTotal() {
 		return total;
 	}

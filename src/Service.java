@@ -7,21 +7,24 @@ import java.util.Scanner;
 
 public class Service {
 	
+	private static final String WAREHOUSE_ITEMS = "WarehouseItems.txt";
+	private static final String CUSTOMERS = "Customers.txt";
+	private static final String SALES_PEOPLE = "SalesPeople.txt";
+	private static final String USER_PASS = "UsernamesAndPasswords.txt";
 	private static Warehouse warehouse;
 	private static ArrayList<Customer> customers;
+	private static ArrayList<SalesPerson> salesPeople;
 	private static HashMap<String, String> userAndPasswords;
 	private static HashMap<String, Integer> tasks;	// taskName, workerRequirement
 	private static HashMap<String, ArrayList<Integer>> workerHoursAndSalary;
 	private static int flag = 0;
-	private static void init(){
-		warehouse = new Warehouse(createRandItems(), createWarehouseWorkers());
-		userAndPasswords = new HashMap<String, String>();
+	private static void init() throws Exception{
+		warehouse = new Warehouse(Database.getItems(WAREHOUSE_ITEMS), createWarehouseWorkers());
+		customers = Database.getCustomers(CUSTOMERS);
+		salesPeople = Database.getSalesPeople(SALES_PEOPLE);
+		userAndPasswords = Database.getUsersAndPasswords(USER_PASS);
 		tasks = new HashMap<String, Integer>();
 		workerHoursAndSalary = new HashMap<String, ArrayList<Integer>>();
-		userAndPasswords.put("cust1", "cust1");
-		userAndPasswords.put("cust2", "cust2");
-		userAndPasswords.put("work1", "work1");
-		userAndPasswords.put("work2", "work2");
 		tasks.put("Stock", 5);
 		tasks.put("Warehouse", 10);
 		tasks.put("Check Expired items", 4);
@@ -29,37 +32,52 @@ public class Service {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		// custUsernamesAndPasswords = new HashMap<String, String>();
-		// workUsernamesAndPasswords = new HashMap<String, HashMap<String, String>>();
 		init();
 		home();
 	}
-	//Placeholder methods that need to be filled out to work
 	
 	public static void signup() throws Exception {
 		//some sign up function
+		boolean isWorker = false;
+		boolean isSales = false;
 		Scanner sc = new Scanner(System.in);
 		System.out.println("Please type the corresponding number for your account type:");
 		System.out.println("(1) Customer");
 		System.out.println("(2) Worker");
 		int input2 = sc.nextInt();
-		boolean isWorker = false;
+		
 		if(input2 == 1) {
 			System.out.println("::CUSTOMER SIGNUP::");
 		} else if(input2 == 2) {
 			System.out.println("::WORKER SIGNUP::");
 			isWorker = true;
+			System.out.println("Please type the corresponding number for your account type:");
+			System.out.println("(1) Warehouse");
+			System.out.println("(2) Sales");
+			if(sc.nextInt() == 2) {
+				isSales = true;
+			}
 		}
 		else {
 			throw new Exception("Bad User Input");
-		}		
+		}
 		System.out.println("Enter username:");
 		String username = sc.next();
 		System.out.println("Enter password:");
 		String password = sc.next();
-
-		if(userAndPasswords.containsKey(username) == false) {
+		
+		if(!userAndPasswords.containsKey(username)) {
 			userAndPasswords.put(username, password);
+			if(!isWorker) {
+				Customer c = new Customer(username, new Cart());
+				customers.add(c);
+			}
+			if(isSales) {
+				SalesPerson s = new SalesPerson();
+				s.setUsername(username);
+				salesPeople.add(s);
+			}
+			Database.saveUsersAndPasswords(userAndPasswords, USER_PASS);
 		} else {
 			System.out.println("This username already exists, try using another username");
 			signup();
@@ -131,7 +149,8 @@ public class Service {
 		//just a placeholder to look like login page
 		System.out.println(":: CUSTOMER LOGIN ::");
 		String username = loginHelper();
-		return new Customer(username, new Cart());
+		Customer cust = findCustomerByUsername(username);
+		return cust;
 	}
 	private static void workerHome(Worker worker){
 		//add functionality for things the worker can do (see customerHome for example)
@@ -195,13 +214,106 @@ public class Service {
 			customerHome(currentCustomer);
 			home();
 		}else if(input2 == 2) {
-			Worker worker = workerLogin();
-			workerHome(worker);
+			System.out.println("Please type the corresponding number for your account type:");
+			System.out.println("(1) Warehouse");
+			System.out.println("(2) Sales");
+			if(sc.nextInt() == 2) {
+				SalesPerson salesPerson = salesLogin();
+				salesHome(salesPerson);
+			}else if(sc.nextInt() == 1) {
+				Worker worker = workerLogin();
+				workerHome(worker);
+			}else {
+				throw new Exception("Bad User Input");
+			}
 			home();
 		}else {
 			throw new Exception("Bad User Input");
 		}
 		sc.close();
+	}
+	private static SalesPerson salesLogin() throws Exception {
+		String username = loginHelper();
+		SalesPerson salesPerson = findSalesPerson(username);
+		return salesPerson;
+	}
+	private static void salesHome(SalesPerson salesPerson) throws Exception {
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Please input the number corresponding to what you would like to do:");
+		System.out.println("(1) Add New Item");
+		System.out.println("(2) Remove an Item");
+		System.out.println("(3) Temporarily disable an Item");
+		System.out.println("(4) Logout");
+		int choice = sc.nextInt();
+		if(choice == 1) {
+			sc.nextLine();
+			Item item = new Item();
+			System.out.println("Please type the item name:");
+			if(sc.hasNextLine()) {
+				item.setName(sc.nextLine());
+			}
+			System.out.println("Please type the item description:");
+			if(sc.hasNextLine()) {
+				item.setDescription(sc.nextLine());
+			}
+			System.out.println("How many items will be available?");
+			item.setNumItems(sc.nextInt());
+			System.out.println("How much will the item cost?");
+			item.setPrice(sc.nextInt());
+			item.setActiveStatus(true);
+			warehouse.getItems().add(item);
+			salesPerson.getItems().add(item);
+			System.out.println("--Item Successfully Added--");
+			salesHome(salesPerson);
+		}else if(choice == 2) {
+			if(salesPerson.getItems().size() == 0) {
+				System.out.println("You have no items in the shop");
+				salesHome(salesPerson);
+			}
+			printItemsFromList(salesPerson.getItems());
+			System.out.println("Please type the corresponding number to the Item you would like to remove:");
+			int indexToRemove = sc.nextInt()-1;
+			Item itemToRemove = salesPerson.getItems().get(indexToRemove);
+			for(Item i : warehouse.getAvailableItems()) {
+				if(i.equals(itemToRemove)) {
+					warehouse.getAvailableItems().remove(i);
+				}
+				System.out.println("--Item successfully removed--");
+				salesPerson.getItems().remove(indexToRemove);
+				salesHome(salesPerson);
+			}
+		}else if(choice == 3) {
+			if(salesPerson.getItems().size() == 0) {
+				System.out.println("You have no items in the shop");
+				salesHome(salesPerson);
+			}
+			printItemsFromList(salesPerson.getItems());
+			System.out.println("Please type the corresponding number to the Item you would like to disable:");
+			Item itemToDisable = salesPerson.getItems().get(sc.nextInt()-1);
+			itemToDisable.setActiveStatus(false);
+			for(Item i : warehouse.getAvailableItems()) {
+				if(i.equals(itemToDisable)) {
+					i.setActiveStatus(false);
+				}
+				System.out.println("--Item successfully disabled--");
+				salesHome(salesPerson);
+			}
+		}else if(choice == 4) {
+			Database.saveSalesPeople(salesPeople, SALES_PEOPLE);
+			Database.saveItems(warehouse.getItems(), WAREHOUSE_ITEMS);
+			home();
+		}else {
+			throw new Exception("Bad User Input");
+		}
+		
+	}
+	private static SalesPerson findSalesPerson(String username) {
+		for(SalesPerson s : salesPeople) {
+			if(s.getUsername().equals(username)) {
+				return s;
+			}
+		}
+		return null;
 	}
 	//as long as a customer is logged in they must always return here
 	private static void customerHome(Customer currentCustomer) throws Exception {
@@ -230,6 +342,8 @@ public class Service {
 			customerHome(currentCustomer);
 		}
 		else if(input == 3) {
+			Database.saveItems(warehouse.getItems(), WAREHOUSE_ITEMS);
+			Database.saveCustomers(customers, CUSTOMERS);
 			home();
 		}
 		else if(input == 4) {
@@ -251,7 +365,7 @@ public class Service {
 				System.out.println("How many stars do you give the Item from 1-5:");
 				int stars = sc.nextInt();
 				System.out.println("Type any comments you have about the Item:");
-				String textReview = sc.next();
+				String textReview = sc.nextLine();
 				Review review = new Review(stars, textReview);
 				itemToReview.getReviews().add(review);
 			}else {
@@ -310,9 +424,17 @@ public class Service {
 		if(!sc.hasNextInt()) {
 			throw new Exception("Bad user input");
 		}
-		System.out.println("Please ship the Item to our address");
-		System.out.println("$" + allPurchasedItems.get(sc.nextInt()-1).getPrice() + " has been refunded to you.");
-		allPurchasedItems.remove(sc.nextInt()-1);
+		int itemToRemove = sc.nextInt()-1;
+		if(allPurchasedItems.size() > 0) {
+			System.out.println("Please ship the Item to our address");
+			System.out.println("$" + allPurchasedItems.get(itemToRemove).getPrice() + " has been refunded to you.");
+			allPurchasedItems.remove(itemToRemove);
+		}else if(itemToRemove > allPurchasedItems.size()) {
+			System.out.println("Invalid Input");
+		}else {
+			System.out.println("You must purchase an Item to return it");
+		}
+		
 	}
 	private static Reciept printReciept(Customer currentCustomer) {
 		ArrayList<Item> items = new ArrayList<Item>(currentCustomer.getCart().getItems());
@@ -408,7 +530,7 @@ public class Service {
 
 	}
 
-	private static Cart addToCart() {
+	private static Cart addToCart() throws Exception {
 		Cart customersCart = new Cart();
 		Scanner sc = new Scanner(System.in);
 		System.out.println("current available items:");
@@ -420,6 +542,12 @@ public class Service {
 		System.out.println(chosenItem.getDescription());
 		System.out.println("Item Reviews:");
 		printReviews(chosenItem);
+		if(chosenItem.getImage() != null) {
+			System.out.println("Would you like to view an image of this Item? (y/n)");
+			if(sc.next().equals("y")) {
+				Image.DisplayImage(chosenItem.getImage());
+			}
+		}
 		System.out.println("would you like to add this to your cart? (y/n)");
 		if(sc.next().equals("y")) {
 			customersCart.addItem(chosenItem);
@@ -471,18 +599,6 @@ public class Service {
 		}
 		System.out.println("total: $" + total);
 	}
-	private static ArrayList<Item> createRandItems(){
-		ArrayList<Item> randItems = new ArrayList();
-		for(int i = 0; i < 45; i++) {
-			int price = (int)(Math.random() * 1000) + 1;
-			int numItems = (int)(Math.random() * 150) + 1;
-			boolean isActive = numItems < 125;
-			String name = "item-" + i;
-			String description = "some description for" + name;
-			randItems.add(new Item(price, numItems, isActive, name, description));
-		}
-		return randItems;
-	}
 	private static ArrayList<WarehouseWorker> createWarehouseWorkers(){
 		ArrayList<WarehouseWorker> randWorkers = new ArrayList<>();
 		for(int i = 0; i < 15; i++) {
@@ -493,5 +609,13 @@ public class Service {
 			randWorkers.add(new WarehouseWorker(name, hours, salary, isWorking));
 		}
 		return randWorkers;
+	}
+	private static Customer findCustomerByUsername(String username) {
+		for(Customer c : customers) {
+			if(c.getUsername().equals(username)) {
+				return c;
+			}
+		}
+		return null;
 	}
 }

@@ -8,6 +8,7 @@ public class Item {
 	private boolean isActive;
 	private String name;
 	private String description;
+	private String image;
 	private ArrayList<Review> reviews;
 	
 	Item(int price, int numItems, boolean activeStatus, String name, String description){
@@ -17,6 +18,10 @@ public class Item {
 		this.name = name;
 		this.description = description;
 		this.reviews = new ArrayList<Review>();
+	}
+	public Item() {
+		// TODO Auto-generated constructor stub
+		reviews = new ArrayList<Review>();
 	}
 	public ArrayList<Review> getReviews(){
 		return reviews;
@@ -58,14 +63,37 @@ public class Item {
 		this.description = description;
 	}
 	
+	public String getImage() {
+		return image;
+	}
+	public void setImage(String image) {
+		this.image = image;
+	}
 	@Override
 	public boolean equals(Object item) {
-		if(item.getClass() != this.getClass()) {
-			return false;
-		}
-		if (this.isActive == ((Item) item).isActive() && this.description.equals(((Item) item).getDescription()) && this.name.equals(((Item) item).getName()) && this.price == ((Item) item).getPrice()) {
+		if(this.toDBString().equals(((Item) item).toDBString())) {
 			return true;
 		}
 		return false;
+	}
+	
+	public String toDBString() {
+		String active = "0";
+		String concatReviews = ",";
+		if(this.isActive) {
+			active = "1";
+		}
+		if(reviews.size() > 0) {
+			for(Review r : reviews) {
+				concatReviews = concatReviews.concat(r.toDBString() + ";");
+			}
+			concatReviews = concatReviews.substring(0, concatReviews.length() - 1);
+		}else {
+			concatReviews = "";
+		}
+		if(this.image != null) {
+			return this.price + "," + this.numItems + "," + active + "," + this.name + "," + this.description + "," + concatReviews + "," + this.image;
+		}
+		return this.price + "," + this.numItems + "," + active + "," + this.name + "," + this.description + concatReviews;
 	}
 }

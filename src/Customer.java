@@ -20,8 +20,16 @@ public class Customer {
 		reciepts = new ArrayList<Reciept>();
 	}
 	
+	public Customer() {
+		// TODO Auto-generated constructor stub
+		reciepts = new ArrayList<Reciept>();
+	}
+
 	public ArrayList<Reciept> getReciepts() {
 		return reciepts;
+	}
+	public void setReciepts(ArrayList<Reciept> reciepts) {
+		this.reciepts = reciepts;
 	}
 	public String getUsername() {
 		return username;
