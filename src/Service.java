@@ -10,11 +10,11 @@ public class Service {
 	private static final String WAREHOUSE_ITEMS = "WarehouseItems.txt";
 	private static final String CUSTOMERS = "Customers.txt";
 	private static final String SALES_PEOPLE = "SalesPeople.txt";
-	private static final String USER_PASS = "UsernamesAndPasswords.txt";
+	static final String USER_PASS = "UsernamesAndPasswords.txt";
 	private static Warehouse warehouse;
-	private static ArrayList<Customer> customers;
-	private static ArrayList<SalesPerson> salesPeople;
-	private static HashMap<String, String> userAndPasswords;
+	static ArrayList<Customer> customers;
+	static ArrayList<SalesPerson> salesPeople;
+	static HashMap<String, String> userAndPasswords;
 	private static HashMap<String, Integer> tasks;	// taskName, workerRequirement
 	private static HashMap<String, ArrayList<Integer>> workerHoursAndSalary;
 	private static int flag = 0;
@@ -37,96 +37,19 @@ public class Service {
 	}
 	
 	public static void signup() throws Exception {
-		//some sign up function
-		boolean isWorker = false;
-		boolean isSales = false;
-		Scanner sc = new Scanner(System.in);
-		System.out.println("Please type the corresponding number for your account type:");
-		System.out.println("(1) Customer");
-		System.out.println("(2) Worker");
-		int input2 = sc.nextInt();
-		
-		if(input2 == 1) {
-			System.out.println("::CUSTOMER SIGNUP::");
-		} else if(input2 == 2) {
-			System.out.println("::WORKER SIGNUP::");
-			isWorker = true;
-			System.out.println("Please type the corresponding number for your account type:");
-			System.out.println("(1) Warehouse");
-			System.out.println("(2) Sales");
-			if(sc.nextInt() == 2) {
-				isSales = true;
-			}
-		}
-		else {
-			throw new Exception("Bad User Input");
-		}
-		System.out.println("Enter username:");
-		String username = sc.next();
-		System.out.println("Enter password:");
-		String password = sc.next();
-		
-		if(!userAndPasswords.containsKey(username)) {
-			userAndPasswords.put(username, password);
-			if(!isWorker) {
-				Customer c = new Customer(username, new Cart());
-				customers.add(c);
-			}
-			if(isSales) {
-				SalesPerson s = new SalesPerson();
-				s.setUsername(username);
-				salesPeople.add(s);
-			}
-			Database.saveUsersAndPasswords(userAndPasswords, USER_PASS);
-		} else {
-			System.out.println("This username already exists, try using another username");
-			signup();
-		}
-		home();
+		AuthenticationOperationExecutor authenticationOperationExecutor = new AuthenticationOperationExecutor();
+		authenticationOperationExecutor.executeOperation(new SignUp());
+	}
+	public static void login() throws Exception {
+		AuthenticationOperationExecutor authenticationOperationExecutor = new AuthenticationOperationExecutor();
+		authenticationOperationExecutor.executeOperation(new Login());
+	}
+	static String loginHelper() throws Exception {
+		AuthenticationOperationExecutor authenticationOperationExecutor = new AuthenticationOperationExecutor();
+		return authenticationOperationExecutor.executeOperation(new LoginHelper());
 	}
 	
-	//workers usernames & passwords will be randomly created & stored as filler info
-	//as long as a worker is logged in they must always return here
-
-	private static String loginHelper() throws Exception {
-		Scanner sc = new Scanner(System.in);
-		System.out.println("Enter username:");
-		String username = sc.next();
-		int input;
-		if(userAndPasswords.containsKey(username) == false) {
-			System.out.println("Username doesn't exist, try again or sign up");
-			System.out.println("(1) Try again");
-			System.out.println("(2) Sign Up");
-			input = sc.nextInt();
-			if(input == 1) {
-				loginHelper();
-			}else if(input == 2) {
-				signup();
-			}else {
-				throw new Exception("Bad User Input");
-			}
-		}
-		String check = userAndPasswords.get(username);
-		while(true) {
-			System.out.println("Enter password:");
-			String password = sc.next();			
-			if(check.equals(password)) {
-				System.out.println("Welcome Back!");
-				break;
-			} else {
-				System.out.println("Wrong password!");
-				System.out.println("(1) Try with different username");
-				System.out.println("(2) Retry password");
-				input = sc.nextInt();
-				if(input == 1) {
-					loginHelper();
-				}
-			}
-		}
-		return username;
-	}
-
-	private static Worker workerLogin() throws Exception {
+	static Worker workerLogin() throws Exception {
 		System.out.println(":: WORKER LOGIN ::");
 		String username = loginHelper();
 		// TODO:: create random hours, salary
@@ -145,14 +68,14 @@ public class Service {
 		workerHoursAndSalary.put(username, list);
 		return new Worker(username, hours, salary);
 	}
-	private static Customer customerLogin() throws Exception{
+	static Customer customerLogin() throws Exception{
 		//just a placeholder to look like login page
 		System.out.println(":: CUSTOMER LOGIN ::");
 		String username = loginHelper();
 		Customer cust = findCustomerByUsername(username);
 		return cust;
 	}
-	private static void workerHome(Worker worker){
+	static void workerHome(Worker worker){
 		//add functionality for things the worker can do (see customerHome for example)
 		Scanner sc = new Scanner(System.in);
 		System.out.println(":: WORKER HOME ::");
@@ -203,41 +126,12 @@ public class Service {
 			throw new Exception("Bad User Input");
 		}
 	}
-	public static void login() throws Exception {
-		Scanner sc = new Scanner(System.in);
-		System.out.println("Please type the corresponding number for your account type:");
-		System.out.println("(1) Customer");
-		System.out.println("(2) Worker");
-		int input2 = sc.nextInt();
-		if(input2 == 1) {
-			Customer currentCustomer = customerLogin();
-			customerHome(currentCustomer);
-			home();
-		}else if(input2 == 2) {
-			System.out.println("Please type the corresponding number for your account type:");
-			System.out.println("(1) Warehouse");
-			System.out.println("(2) Sales");
-			if(sc.nextInt() == 2) {
-				SalesPerson salesPerson = salesLogin();
-				salesHome(salesPerson);
-			}else if(sc.nextInt() == 1) {
-				Worker worker = workerLogin();
-				workerHome(worker);
-			}else {
-				throw new Exception("Bad User Input");
-			}
-			home();
-		}else {
-			throw new Exception("Bad User Input");
-		}
-		sc.close();
-	}
-	private static SalesPerson salesLogin() throws Exception {
+	static SalesPerson salesLogin() throws Exception {
 		String username = loginHelper();
 		SalesPerson salesPerson = findSalesPerson(username);
 		return salesPerson;
 	}
-	private static void salesHome(SalesPerson salesPerson) throws Exception {
+	static void salesHome(SalesPerson salesPerson) throws Exception {
 		Scanner sc = new Scanner(System.in);
 		System.out.println("Please input the number corresponding to what you would like to do:");
 		System.out.println("(1) Add New Item");
@@ -316,7 +210,7 @@ public class Service {
 		return null;
 	}
 	//as long as a customer is logged in they must always return here
-	private static void customerHome(Customer currentCustomer) throws Exception {
+	static void customerHome(Customer currentCustomer) throws Exception {
 		
 		Scanner sc = new Scanner(System.in);
 		Marketing ad = new Marketing(warehouse.getAvailableItems());
@@ -360,10 +254,11 @@ public class Service {
 		}else if (input == 6) {
 			System.out.println("Type the name of the Item you would like to review:");
 			String itemName = sc.next();
+			sc.nextLine();
 			if(CheckHistory(currentCustomer, itemName)) {
 				Item itemToReview = findBoughtItemByName(currentCustomer, itemName);
 				System.out.println("How many stars do you give the Item from 1-5:");
-				int stars = sc.nextInt();
+				int stars = Integer.valueOf(sc.nextLine());
 				System.out.println("Type any comments you have about the Item:");
 				String textReview = sc.nextLine();
 				Review review = new Review(stars, textReview);

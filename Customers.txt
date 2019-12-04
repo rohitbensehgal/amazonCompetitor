@@ -10,3 +10,7 @@ someone
 someone-reciepts.txt
 0
 0
+someuser
+someuser-reciepts.txt
+0
+0

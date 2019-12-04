@@ -1,6 +1,6 @@
 2
 20
-130,29,1,chromebook,bad phone,3-best cell laptop;5-good thing;3-
+130,29,1,chromebook,bad phone,3-best cell laptop;5-good thing;3-its good
 10,139,1,samsung galaxy,galaxy,1-bad phone
 2019-12-02 15:05:32.429
 120

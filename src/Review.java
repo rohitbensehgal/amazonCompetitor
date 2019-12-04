@@ -37,6 +37,9 @@ public class Review implements Comparator<Review> {
 	}
 	
 	public String toDBString() {
+		if(this.review == null) {
+			this.review = " ";
+		}
 		return this.stars + "-" + this.review;
 	}
 }
