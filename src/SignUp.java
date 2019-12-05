@@ -6,6 +6,7 @@ public class SignUp implements AuthenticationOperation{
 	public String Execute() throws Exception {
 		boolean isWorker = false;
 		boolean isSales = false;
+		boolean isHR = false;
 		Scanner sc = new Scanner(System.in);
 		System.out.println("Please type the corresponding number for your account type:");
 		System.out.println("(1) Customer");
@@ -20,8 +21,13 @@ public class SignUp implements AuthenticationOperation{
 			System.out.println("Please type the corresponding number for your account type:");
 			System.out.println("(1) Warehouse");
 			System.out.println("(2) Sales");
-			if(sc.nextInt() == 2) {
+			System.out.println("(3) HR");
+			int choice = sc.nextInt();
+			if(choice == 2) {
 				isSales = true;
+			}
+			if(choice == 3) {
+				isHR = true;
 			}
 		}
 		else {
@@ -42,6 +48,18 @@ public class SignUp implements AuthenticationOperation{
 				SalesPerson s = new SalesPerson();
 				s.setUsername(username);
 				Service.salesPeople.add(s);
+			}else if(isWorker) {
+				WarehouseWorker w = new WarehouseWorker();
+				w.setUsername(username);
+				int[] hours = {0,0,0,0,0,0,0};
+				w.setHours(hours);
+				w.setSalary(8);
+				w.setSkillLevel(0);
+				Service.warehouse.getWorkers().add(w);
+			}else if(isHR) {
+				HumanResources h = new HumanResources();
+				h.setUsername(username);
+				Service.HR.add(h);
 			}
 			Database.saveUsersAndPasswords(Service.userAndPasswords, Service.USER_PASS);
 		} else {

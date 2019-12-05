@@ -17,13 +17,17 @@ public class Login implements AuthenticationOperation{
 			System.out.println("Please type the corresponding number for your account type:");
 			System.out.println("(1) Warehouse");
 			System.out.println("(2) Sales");
+			System.out.println("(3) HR");
 			int choice = sc.nextInt();
 			if(choice == 2) {
 				SalesPerson salesPerson = Service.salesLogin();
 				Service.salesHome(salesPerson);
 			}else if(choice == 1) {
-				Worker worker = Service.workerLogin();
+				WarehouseWorker worker = Service.workerLogin();
 				Service.workerHome(worker);
+			}else if(choice == 3){
+				HumanResources humanResources = Service.HRLogin();
+				Service.HRHome(humanResources);
 			}else {
 				throw new Exception("Bad User Input");
 			}

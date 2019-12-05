@@ -125,6 +125,24 @@ public class Database {
 	    }
 	    writer.close();
 	}
+	public static ArrayList<HumanResources> getHR(String fileName) throws FileNotFoundException {
+		ArrayList<HumanResources> humanResources = new ArrayList<>();
+		File file = new File(fileName); 
+		Scanner sc = new Scanner(file);
+		while (sc.hasNextLine()) {
+			HumanResources hr = new HumanResources();
+			hr.setUsername(sc.nextLine());
+			humanResources.add(hr);
+		}
+		return humanResources;
+	}
+	public static void saveHR(ArrayList<HumanResources> hR, String fileName) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+	    for(HumanResources h : hR) {
+	    	writer.write(h.getUsername() + "\n");
+	    }
+	    writer.close();
+	}
 	public static void saveSalesPeople(ArrayList<SalesPerson> salesPeople, String fileName) throws Exception {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
 	    for(SalesPerson s : salesPeople) {
@@ -154,6 +172,39 @@ public class Database {
 			salesPeople.add(salesPerson);
 		}
 		return salesPeople;
+	}
+	public static void saveWorkers(ArrayList<WarehouseWorker> warehouseWorkers, String fileName) throws Exception {
+		BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+	    for(WarehouseWorker w : warehouseWorkers) {
+	    	writer.write(w.getUsername() + "\n");
+	    	writer.write(w.getSalary() + "\n");
+	    	writer.write(w.getSkillLevel() + "\n");
+	    	String hours = "";
+	    	for(int i = 0; i < w.getHours().length; i++) {
+	    		hours = hours.concat(w.getHours()[i] + ",");
+	    	}
+	    	writer.write(hours.substring(0, 13) + "\n");
+	    }
+	    writer.close();
+	}
+	public static ArrayList<WarehouseWorker> getWarehouseWorkers(String fileName) throws Exception {
+		ArrayList<WarehouseWorker> warehouseWorkers = new ArrayList<>();
+		File file = new File(fileName); 
+		Scanner sc = new Scanner(file);
+		while (sc.hasNextLine()) {
+			WarehouseWorker w = new WarehouseWorker();
+			w.setUsername(sc.nextLine());
+			w.setSalary(Integer.valueOf(sc.nextLine()));
+			w.setSkillLevel(Integer.valueOf(sc.nextLine()));
+			int[] hours = {0,0,0,0,0,0,0};
+			String[] s = sc.nextLine().split(",");
+			for(int i = 0; i < 7; i++) {
+				hours[i] = Integer.valueOf(s[i]);
+			}
+			w.setHours(hours);
+			warehouseWorkers.add(w);
+		}
+		return warehouseWorkers;
 	}
 	public static HashMap<String, String> getUsersAndPasswords(String fileName) throws Exception{
 		HashMap<String, String> userPass = new HashMap<String, String>();

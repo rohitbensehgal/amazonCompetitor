@@ -1,9 +1,11 @@
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.stream.IntStream;
 
 public class Service {
 	
@@ -11,18 +13,22 @@ public class Service {
 	private static final String CUSTOMERS = "Customers.txt";
 	private static final String SALES_PEOPLE = "SalesPeople.txt";
 	static final String USER_PASS = "UsernamesAndPasswords.txt";
-	private static Warehouse warehouse;
+	private static final String WAREHOUSE_WORKERS = "WarehouseWorkers.txt";
+	private static final String HUMAN_RESOURCES = "HumanResources.txt";
+	static Warehouse warehouse;
 	static ArrayList<Customer> customers;
 	static ArrayList<SalesPerson> salesPeople;
+	static ArrayList<HumanResources> HR;
 	static HashMap<String, String> userAndPasswords;
 	private static HashMap<String, Integer> tasks;	// taskName, workerRequirement
 	private static HashMap<String, ArrayList<Integer>> workerHoursAndSalary;
 	private static int flag = 0;
 	private static void init() throws Exception{
-		warehouse = new Warehouse(Database.getItems(WAREHOUSE_ITEMS), createWarehouseWorkers());
+		warehouse = new Warehouse(Database.getItems(WAREHOUSE_ITEMS), Database.getWarehouseWorkers(WAREHOUSE_WORKERS));
 		customers = Database.getCustomers(CUSTOMERS);
 		salesPeople = Database.getSalesPeople(SALES_PEOPLE);
 		userAndPasswords = Database.getUsersAndPasswords(USER_PASS);
+		HR = Database.getHR(HUMAN_RESOURCES);
 		tasks = new HashMap<String, Integer>();
 		workerHoursAndSalary = new HashMap<String, ArrayList<Integer>>();
 		tasks.put("Stock", 5);
@@ -49,24 +55,10 @@ public class Service {
 		return authenticationOperationExecutor.executeOperation(new LoginHelper());
 	}
 	
-	static Worker workerLogin() throws Exception {
+	static WarehouseWorker workerLogin() throws Exception {
 		System.out.println(":: WORKER LOGIN ::");
 		String username = loginHelper();
-		// TODO:: create random hours, salary
-		Random rand = new Random();
-		int hours = rand.nextInt(12)+1;
-		int salary = 0;
-		if(hours>8) {
-			salary = rand.nextInt(800)+2000;
-		}
-		else {
-			salary = 2000;
-		}
-		ArrayList<Integer> list = new ArrayList<Integer>();
-		list.add(hours);
-		list.add(salary);
-		workerHoursAndSalary.put(username, list);
-		return new Worker(username, hours, salary);
+		return getWarehouseWorkerByUsername(username);
 	}
 	static Customer customerLogin() throws Exception{
 		//just a placeholder to look like login page
@@ -75,40 +67,150 @@ public class Service {
 		Customer cust = findCustomerByUsername(username);
 		return cust;
 	}
-	static void workerHome(Worker worker){
-		//add functionality for things the worker can do (see customerHome for example)
+	static SalesPerson salesLogin() throws Exception {
+		String username = loginHelper();
+		SalesPerson salesPerson = findSalesPerson(username);
+		return salesPerson;
+	}
+	public static HumanResources HRLogin() throws Exception {
+		String username = loginHelper();
+		return getHRByUsername(username);
+	}
+
+	public static void HRHome(HumanResources humanResources) throws Exception {
 		Scanner sc = new Scanner(System.in);
-		System.out.println(":: WORKER HOME ::");
-		System.out.println("Welcome back " + worker.username);
-		System.out.println("AVAILABLE TASKS");
-		int serial = 1;
-		int count = 0;
-		for(String name: tasks.keySet()) {
-			count = tasks.get(name);
-			if(count != 0) {
-				System.out.println(serial+" "+name);
-				serial++;
+		System.out.println("Please input the number corresponding to what you would like to do:");
+		System.out.println("(1) Edit worker hours");
+		System.out.println("(2) Hire new worker");
+		System.out.println("(3) Fire worker");
+		System.out.println("(4) Logout");
+		int choice = Integer.valueOf(sc.nextLine());
+		if(choice == 1) {
+			System.out.println("Enter the worker's username");
+			WarehouseWorker w = getWarehouseWorkerByUsername(sc.nextLine());
+			System.out.println("Please type the workers hours, comma seperated by day (day 1 is sunday)");
+			System.out.println("Example (normal 9-5): 0,8,8,8,8,8,0");
+			String[] s = sc.nextLine().split(",");
+			int[] hours = {0,0,0,0,0,0,0};
+			for(int i = 0; i < 7; i++) {
+				hours[i] = Integer.valueOf(s[i]);
+			}
+			w.setHours(hours);
+			System.out.println("Worker's hours updated");
+			HRHome(humanResources);
+		}else if(choice == 2) {
+			WarehouseWorker w = new WarehouseWorker();
+			System.out.println("Please enter the username for this worker");
+			w.setUsername(sc.nextLine());
+			System.out.println("How much will this worker get paid?");
+			w.setSalary(Integer.valueOf(sc.nextLine()));
+			w.setSkillLevel(0);
+			System.out.println("Please type the workers hours, comma seperated by day (day 1 is sunday)");
+			System.out.println("Example (normal 9-5): 0,8,8,8,8,8,0");
+			String[] s = sc.nextLine().split(",");
+			int[] hours = {0,0,0,0,0,0,0};
+			for(int i = 0; i < 7; i++) {
+				hours[i] = Integer.valueOf(s[i]);
+			}
+			w.setHours(hours);
+			warehouse.getWorkers().add(w);
+			HRHome(humanResources);
+		}else if(choice == 3) {
+			System.out.println("Please enter the username of the worker you would like to fire:");
+			WarehouseWorker w = getWarehouseWorkerByUsername(sc.nextLine());
+			System.out.println("Username: " + w.getUsername());
+			System.out.println("Salary: $" + w.getSalary() + "/hour");
+			System.out.println("Skill Level: " + w.getSkillLevel());
+			String hours = "";
+	    	for(int i = 0; i < w.getHours().length; i++) {
+	    		hours = hours.concat(w.getHours()[i] + ",");
+	    	}
+	    	System.out.println("Hours: " + hours.substring(0, 13));
+			System.out.println("Are you sure you want to fire this worker? (y/n)");
+			if(sc.nextLine().equals("y")) {
+				warehouse.getWorkers().remove(w);
+				System.out.println("Worker removed from system");
+			}
+			HRHome(humanResources);
+		}else if(choice == 4) {
+			Database.saveHR(HR, HUMAN_RESOURCES);
+			Database.saveWorkers(warehouse.getWorkers(), WAREHOUSE_WORKERS);
+			home();
+		}
+	}
+	static HumanResources getHRByUsername(String username) {
+		for(HumanResources h : HR) {
+			if(h.getUsername().equals(username)) {
+				return h;
 			}
 		}
-		Random rand = new Random();
-		int assign = rand.nextInt(serial)+1;
-		int i = 0;	
-		ArrayList<Integer> list;
-		for(String name: tasks.keySet()) {
-			count = tasks.get(name);
-			if(count != 0) {
-				i++;
-				if(i == assign) {
-					System.out.println("You have been assigned: " + name);
-					list = workerHoursAndSalary.get(worker.username);
-					System.out.println("Your have to work for " + list.get(0) + " hours");
-					System.out.println("Your salary is " + list.get(1) + " per month");
-					count--;
-					tasks.put(name, count);
-					break;
-				}
+		return null;
+	}
+	static WarehouseWorker getWarehouseWorkerByUsername(String username) {
+		for(WarehouseWorker worker : warehouse.getWorkers()) {
+			if(worker.getUsername().equals(username)) {
+				return worker;
 			}
-		}		
+		}
+		return null;
+	}
+	static void workerHome(WarehouseWorker worker) throws Exception{
+		//add functionality for things the worker can do (see customerHome for example)
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Please input the number corresponding to what you would like to do:");
+		System.out.println("(1) Take skill survey");
+		System.out.println("(2) View today's hours");
+		System.out.println("(3) Clock in");
+		System.out.println("(4) Collect pay");
+		System.out.println("(5) Logout");
+		int choice = Integer.valueOf(sc.nextLine());
+		if(choice == 1) {
+			System.out.println("Please fill out the following survey");
+			System.out.println("Do you have a college degree? (y/n)");
+			String inp = sc.nextLine();
+			if(inp.equals("y")) {
+				System.out.println("What was your major?");
+				System.out.println("1. Engineering");
+				System.out.println("2. Science");
+				System.out.println("3. Business");
+				System.out.println("4. Biology");
+				System.out.println("5. Other");
+				worker.setSkillLevel(Integer.valueOf(sc.nextLine()));
+			}
+			workerHome(worker);
+		}else if(choice == 2) {
+			Timestamp t = new Timestamp(System.currentTimeMillis());
+			System.out.println("To change your hours visit an HR representative");
+			System.out.println("Today you work " + worker.getHours()[t.getDay()] + " Hours");
+			workerHome(worker);
+		}else if(choice == 3) {
+			Timestamp t = new Timestamp(System.currentTimeMillis());
+			int hours = t.getHours() + worker.getHours()[t.getDay()];
+			int minutes = t.getMinutes();
+			int seconds = t.getSeconds();
+			System.out.println("You will be automatically clocked out at " + hours + ":" + minutes + ":" + seconds);
+			workerHome(worker);
+		}else if(choice == 4) {
+			Timestamp t = new Timestamp(System.currentTimeMillis());
+			if(t.getDay() != 5) {
+				System.out.println("It must be friday for you to get paid");
+				workerHome(worker);
+			}else {
+				int sum = IntStream.of(worker.getHours()).sum();
+				int total = sum*worker.getSalary();
+				int tax = (int) Math.round(total*0.12);
+				int afterTaxTotal = total - tax;
+				System.out.println("Your paycheck will be deposited with:");
+				System.out.println("Total: $" + total);
+				System.out.println("Taxes: $" + tax);
+				System.out.println("Final: $" + afterTaxTotal);
+				workerHome(worker);
+			}
+		}else if(choice == 5) {
+			Database.saveWorkers(warehouse.getWorkers(), WAREHOUSE_WORKERS);
+			home();
+		}
+		
 	}
 
 	//Start of use cases
@@ -125,11 +227,6 @@ public class Service {
 		}else {
 			throw new Exception("Bad User Input");
 		}
-	}
-	static SalesPerson salesLogin() throws Exception {
-		String username = loginHelper();
-		SalesPerson salesPerson = findSalesPerson(username);
-		return salesPerson;
 	}
 	static void salesHome(SalesPerson salesPerson) throws Exception {
 		Scanner sc = new Scanner(System.in);
@@ -231,7 +328,6 @@ public class Service {
 			customerHome(currentCustomer);
 		}else if(input == 2) {
 			currentCustomer.setCart(checkOut(currentCustomer.getCart()));
-			shipOrder(currentCustomer.getCart());
 			currentCustomer.getReciepts().add(printReciept(currentCustomer));
 			customerHome(currentCustomer);
 		}
@@ -347,17 +443,11 @@ public class Service {
 		r.print();
 		return r;
 	}
-	private static void shipOrder(Cart finalPaidCart) {
-		ArrayList<WarehouseWorker> potentialWorkers = warehouse.getAvailableWorkers();
-		potentialWorkers.get(0).hours += 1;
-		ArrayList<Item> items = new ArrayList<Item>(finalPaidCart.getItems());
-		for(Item i : items) {
-			warehouse.decrementItem(i);
-		}
-	}
-	
+
 	private static Cart checkOut(Cart customersCart) {
 		Scanner sc = new Scanner(System.in);
+		Random rand = new Random();
+		int c = rand.nextInt(3)+2;
 		ArrayList<Item> items = new ArrayList<Item>(customersCart.getItems());
 		for(Item i : items) {
 			System.out.println("your current cart:");
@@ -380,29 +470,46 @@ public class Service {
 		for(Item i : items) {
 			total += i.getPrice();
 		}
-		int discount=0;
-		boolean check = false;
 		System.out.println("your total is: $" + total);
-		Marketing promo = new Marketing(total, check);
-		promo.getPromoCode();
-		if(promo.getPromoCode() == true) {
-			Scanner scan = new Scanner(System.in);
-			String ip = scan.nextLine();
-			if (ip.equals("get20")){
-				discount = 20;
+		String s;
+		int shipCost = 7;
+		System.out.println("Would you like to ship these items?(y/n)");
+		String ans = sc.next();
+		String[] ch;
+		if(ans.equals("y")) {
+			System.out.println("Please enter your address:");
+			System.out.println("City, State");
+			while(true) {
+			s = sc.nextLine();
+			ch = s.split(", ");
+			//System.out.println("length"+ch.length);
+			if(ch.length !=2) {
+				System.out.println("Please write it in this format. For instance: (Ames, Iowa)");
+				continue;
 			}
-			if (ip.equals("get50")){
-				discount = 50;
+			break;
+			
+		}
+			System.out.println("Choose your delivery option:");
+			
+			if(ch[1].charAt(0) == 'I' || ch[1].charAt(0) == 'M') {
+				System.out.println("(1) 1 day shipping - $" + shipCost);
+				System.out.println("(2) 3-4 day shipping - $" + c);
 			}
-			if (ip.equals("get80")){
-				discount = 80;
+			else {
+				shipCost = 10;
+				c+= 2;
+				System.out.println("(1) 1 day shipping - $" + shipCost);
+				System.out.println("(2) 3-4 day shipping - $" + c);
 			}
-			if (ip.equals("get100")){
-				discount = 100;
+			int n = sc.nextInt();
+			if(n==1) {
+				total+=shipCost;
 			}
-			total = total-discount;
-			customersCart.setDiscount(discount);
-			System.out.println("Congrats, your new total is: $" + total);
+			else if(n==2) {
+				total+=c;
+			}
+			System.out.println("your total is now: $" + total);
 		}
 		System.out.println("please input your card number:");
 		String cardNumber = sc.next();
@@ -419,10 +526,9 @@ public class Service {
 				}
 			}
 		}
-		Cart r = new Cart(items);
-		r.setDiscount(discount);
-		return r;
-
+		Cart cart = new Cart(items);
+		cart.setDiscount(0 - shipCost);
+		return cart;
 	}
 
 	private static Cart addToCart() throws Exception {
@@ -493,17 +599,6 @@ public class Service {
 			total += j.getPrice()*numItems;
 		}
 		System.out.println("total: $" + total);
-	}
-	private static ArrayList<WarehouseWorker> createWarehouseWorkers(){
-		ArrayList<WarehouseWorker> randWorkers = new ArrayList<>();
-		for(int i = 0; i < 15; i++) {
-			int hours = 0;
-			int salary = 8;
-			String name = "Worker" + i;
-			boolean isWorking = i > 7;
-			randWorkers.add(new WarehouseWorker(name, hours, salary, isWorking));
-		}
-		return randWorkers;
 	}
 	private static Customer findCustomerByUsername(String username) {
 		for(Customer c : customers) {

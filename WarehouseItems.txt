@@ -1,13 +1,13 @@
 110,9,1,blackberry,bad phone
-1170,99,1,whiteberry,random phone,2-a cellphonne
+1170,98,1,whiteberry,random phone,2-a cellphonne
 120,27,1,chromebook,bad phone,3-best cell laptop;5-good thing
 10,139,1,samsung galaxy,galaxy,1-bad phone;1-bad phone
 20,117,1,iphone,apple,5-good cell phone;5-good cell phone
 1200,132,1,something,something,1-is something;5-short review;1-is something;5-short review
 280,155,1,item,description,2-im out;4-review2
-170,112,1,wasd,hello world,2-this is a 2 star review;5-review this thing
+160,112,1,wasd,hello world,2-this is a 2 star review;5-review this thing
 90,15,1,another thing,random thing,5-a thing;5-another thing;5-a third thing
 123,123,1,item new,nnew item
 10,120,1,this is a new item i am sellinng,new itemn
 120,12,0,another item,aa
-12,11,1,new item,wasd
+12,10,1,new item,wasd
