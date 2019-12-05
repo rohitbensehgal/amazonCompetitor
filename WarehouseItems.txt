@@ -1,4 +1,4 @@
-110,9,1,blackberry,bad phone
+100,9,1,blackberry,bad phone
 1170,98,1,whiteberry,random phone,2-a cellphonne
 120,27,1,chromebook,bad phone,3-best cell laptop;5-good thing
 10,139,1,samsung galaxy,galaxy,1-bad phone;1-bad phone

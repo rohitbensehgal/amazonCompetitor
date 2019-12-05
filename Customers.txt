@@ -14,3 +14,7 @@ someuser
 someuser-reciepts.txt
 0
 0
+wasdf
+wasdf-reciepts.txt
+0
+0

@@ -48,7 +48,7 @@ public class SignUp implements AuthenticationOperation{
 				SalesPerson s = new SalesPerson();
 				s.setUsername(username);
 				Service.salesPeople.add(s);
-			}else if(isWorker) {
+			}else if(isWorker && !isHR) {
 				WarehouseWorker w = new WarehouseWorker();
 				w.setUsername(username);
 				int[] hours = {0,0,0,0,0,0,0};
