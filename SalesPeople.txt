@@ -1,3 +1,2 @@
 sales
-1
-12,12,1,new item,wasd
+0

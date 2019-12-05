@@ -1,6 +1,6 @@
 100,9,1,blackberry,bad phone
 1170,98,1,whiteberry,random phone,2-a cellphonne
-120,27,1,chromebook,bad phone,3-best cell laptop;5-good thing
+120,27,1,chromebook,bad phone
 10,139,1,samsung galaxy,galaxy,1-bad phone;1-bad phone
 20,117,1,iphone,apple,5-good cell phone;5-good cell phone
 1200,132,1,something,something,1-is something;5-short review;1-is something;5-short review
@@ -11,3 +11,4 @@
 10,120,1,this is a new item i am sellinng,new itemn
 120,12,0,another item,aa
 12,10,1,new item,wasd
+123,123,1,item,wasd

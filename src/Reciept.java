@@ -10,7 +10,6 @@ public class Reciept {
 	private int total;
 	private int discount;
 	private double num;  //total money of items
-	private PostalService postalService;
 	
 	public Reciept(Customer customer, Cart cart, Timestamp timeOfPurchase) {
 		this.customer = customer;
@@ -92,10 +91,5 @@ public class Reciept {
 	{
 		return num;
 	}
-	// this class replace the above displayCart class to show the total money(postal fee added)
-	private void displayCart1()
-	{
-		double num1 = num+postalService.PostalFee();
-		System.out.println("total: $" + num1);
-	}
+
 }

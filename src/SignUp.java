@@ -1,9 +1,15 @@
 import java.util.Scanner;
 
-public class SignUp implements AuthenticationOperation{
+public class Signup implements ICommand{
 
 	@Override
-	public String Execute() throws Exception {
+	public String getDescription() {
+		return "sign up";
+	}
+
+	@Override
+	public void execute() throws Exception {
+		// TODO Auto-generated method stub
 		boolean isWorker = false;
 		boolean isSales = false;
 		boolean isHR = false;
@@ -67,7 +73,6 @@ public class SignUp implements AuthenticationOperation{
 			Service.signup();
 		}
 		Service.home();
-		return null;
 	}
 
 }

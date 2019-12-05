@@ -1,15 +1,15 @@
 
-public class Login implements ICommand{
+public class Pay implements ICommand{
 
+	WarehouseWorker worker;
 	@Override
 	public String getDescription() {
-		
-		return "login";
+		return "Collect Pay";
 	}
 
 	@Override
 	public void execute() throws Exception {
-		Service.login();
+		Service.pay(worker);
 	}
 
 }

@@ -1,3 +1,5 @@
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,6 +8,8 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.stream.IntStream;
+
+import javax.imageio.ImageIO;
 
 public class Service {
 	
@@ -39,20 +43,262 @@ public class Service {
 	
 	public static void main(String[] args) throws Exception {
 		init();
-		home();
+		//global exception handler
+		while(true) {
+			try {
+				home();
+			} catch(Exception e) {
+				System.out.println("An error ocurred please try again");
+			}
+		}
 	}
-	
+	static void customerHome(Customer currentCustomer) throws Exception {
+		
+		try{
+	          Image.DisplayImage(currentCustomer.getUsername() + ".jpg");
+	        }catch (Exception e){
+	        	System.out.println(currentCustomer.getUsername() + "has no profile picture");
+	        	System.out.println("To add a profile picture add the image to the filesystem with your username.jpg");
+	        }
+		
+		CMDDisplay display = new CMDDisplay();
+		Shop s = new Shop();
+		s.currentCustomer = currentCustomer;
+		Checkout c = new Checkout();
+		c.currentCustomer = currentCustomer;
+		Logout l = new Logout();
+		Return r = new Return();
+		r.currentCustomer = currentCustomer;
+		choiceReview review = new choiceReview();
+		review.currentCustomer = currentCustomer;
+		r.currentCustomer = currentCustomer;
+		VirtualChat v = new VirtualChat();
+		v.currentCustomer = currentCustomer;
+		
+		display.addCommand(v);
+		display.addCommand(r);
+		display.addCommand(s);
+		display.addCommand(c);
+		display.addCommand(l);
+		display.addCommand(review);
+		
+		display.display();
+	}
+	static void workerHome(WarehouseWorker worker) throws Exception{
+
+        try{
+          Image.DisplayImage(worker.getUsername() + ".jpg");
+        }catch (Exception e){
+        	System.out.println(worker.getUsername() + "has no profile picture");
+        	System.out.println("To add a profile picture add the image to the filesystem with your username.jpg");
+        }
+        
+		CMDDisplay display = new CMDDisplay();
+		Survey s = new Survey();
+		s.worker = worker;
+		Hours h = new Hours();
+		h.worker = worker;
+		ClockIn c = new ClockIn();
+		c.worker = worker;
+		Pay p = new Pay();
+		p.worker = worker;
+		Logout l = new Logout();
+		
+		display.addCommand(s);
+		display.addCommand(h);
+		display.addCommand(c);
+		display.addCommand(p);
+		display.addCommand(l);
+		
+		display.display();
+	}
+	static void salesHome(SalesPerson salesPerson) throws Exception {
+		
+		 try{
+	          Image.DisplayImage(salesPerson.getUsername() + ".jpg");
+	        }catch (Exception e){
+	        	System.out.println(salesPerson.getUsername() + "has no profile picture");
+	        	System.out.println("To add a profile picture add the image to the filesystem with your username.jpg");
+	        }
+		 
+		CMDDisplay display = new CMDDisplay();
+		
+		Add a = new Add();
+		a.salesPerson = salesPerson;
+		Remove r = new Remove();
+		r.salesPerson = salesPerson;
+		Disable d = new Disable();
+		d.salesPerson = salesPerson;
+		Logout l = new Logout();
+		
+		display.addCommand(a);
+		display.addCommand(r);
+		display.addCommand(d);
+		display.addCommand(l);
+		display.display();
+		
+	}
+	public static void HRHome(HumanResources humanResources) throws Exception {
+		
+		 try{
+	          Image.DisplayImage(humanResources.getUsername() + ".jpg");
+	        }catch (Exception e){
+	        	System.out.println(humanResources.getUsername() + "has no profile picture");
+	        	System.out.println("To add a profile picture add the image to the filesystem with your username.jpg");
+	        }
+		 
+		CMDDisplay display = new CMDDisplay();
+		
+		Edit e = new Edit();
+		e.humanResources = humanResources;
+		Hire h = new Hire();
+		h.humanResources = humanResources;
+		Fire f = new Fire();
+		f.humanResources = humanResources;
+		Logout l = new Logout();
+		
+		display.addCommand(e);
+		display.addCommand(h);
+		display.addCommand(f);
+		display.addCommand(l);
+		
+		display.display();
+	}
 	public static void signup() throws Exception {
-		AuthenticationOperationExecutor authenticationOperationExecutor = new AuthenticationOperationExecutor();
-		authenticationOperationExecutor.executeOperation(new SignUp());
+		boolean isWorker = false;
+		boolean isSales = false;
+		boolean isHR = false;
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Please type the corresponding number for your account type:");
+		System.out.println("(1) Customer");
+		System.out.println("(2) Worker");
+		int input2 = sc.nextInt();
+		
+		if(input2 == 1) {
+			System.out.println("::CUSTOMER SIGNUP::");
+		} else if(input2 == 2) {
+			System.out.println("::WORKER SIGNUP::");
+			isWorker = true;
+			System.out.println("Please type the corresponding number for your account type:");
+			System.out.println("(1) Warehouse");
+			System.out.println("(2) Sales");
+			System.out.println("(3) HR");
+			int choice = sc.nextInt();
+			if(choice == 2) {
+				isSales = true;
+			}
+			if(choice == 3) {
+				isHR = true;
+			}
+		}
+		else {
+			throw new Exception("Bad User Input");
+		}
+		System.out.println("Enter username:");
+		String username = sc.next();
+		System.out.println("Enter password:");
+		String password = sc.next();
+		
+		if(!Service.userAndPasswords.containsKey(username)) {
+			Service.userAndPasswords.put(username, password);
+			if(!isWorker) {
+				Customer c = new Customer(username, new Cart());
+				Service.customers.add(c);
+			}
+			if(isSales) {
+				SalesPerson s = new SalesPerson();
+				s.setUsername(username);
+				Service.salesPeople.add(s);
+			}else if(isWorker && !isHR) {
+				WarehouseWorker w = new WarehouseWorker();
+				w.setUsername(username);
+				int[] hours = {0,0,0,0,0,0,0};
+				w.setHours(hours);
+				w.setSalary(8);
+				w.setSkillLevel(0);
+				Service.warehouse.getWorkers().add(w);
+			}else if(isHR) {
+				HumanResources h = new HumanResources();
+				h.setUsername(username);
+				Service.HR.add(h);
+			}
+			Database.saveUsersAndPasswords(Service.userAndPasswords, Service.USER_PASS);
+		} else {
+			System.out.println("This username already exists, try using another username");
+			Service.signup();
+		}
+		Service.home();
 	}
 	public static void login() throws Exception {
-		AuthenticationOperationExecutor authenticationOperationExecutor = new AuthenticationOperationExecutor();
-		authenticationOperationExecutor.executeOperation(new Login());
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Please type the corresponding number for your account type:");
+		System.out.println("(1) Customer");
+		System.out.println("(2) Worker");
+		int input2 = sc.nextInt();
+		if(input2 == 1) {
+			Customer currentCustomer = Service.customerLogin();
+			Service.customerHome(currentCustomer);
+			Service.home();
+		}else if(input2 == 2) {
+			System.out.println("Please type the corresponding number for your account type:");
+			System.out.println("(1) Warehouse");
+			System.out.println("(2) Sales");
+			System.out.println("(3) HR");
+			int choice = sc.nextInt();
+			if(choice == 2) {
+				SalesPerson salesPerson = Service.salesLogin();
+				Service.salesHome(salesPerson);
+			}else if(choice == 1) {
+				WarehouseWorker worker = Service.workerLogin();
+				Service.workerHome(worker);
+			}else if(choice == 3){
+				HumanResources humanResources = Service.HRLogin();
+				Service.HRHome(humanResources);
+			}else {
+				throw new Exception("Bad User Input");
+			}
+			Service.home();
+		}else {
+			throw new Exception("Bad User Input");
+		}
+		sc.close();
 	}
 	static String loginHelper() throws Exception {
-		AuthenticationOperationExecutor authenticationOperationExecutor = new AuthenticationOperationExecutor();
-		return authenticationOperationExecutor.executeOperation(new LoginHelper());
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Enter username:");
+		String username = sc.next();
+		int input;
+		if(Service.userAndPasswords.containsKey(username) == false) {
+			System.out.println("Username doesn't exist, try again or sign up");
+			System.out.println("(1) Try again");
+			System.out.println("(2) Sign Up");
+			input = sc.nextInt();
+			if(input == 1) {
+				Service.loginHelper();
+			}else if(input == 2) {
+				Service.signup();
+			}else {
+				throw new Exception("Bad User Input");
+			}
+		}
+		String check = Service.userAndPasswords.get(username);
+		while(true) {
+			System.out.println("Enter password:");
+			String password = sc.next();			
+			if(check.equals(password)) {
+				System.out.println("Welcome Back!");
+				break;
+			} else {
+				System.out.println("Wrong password!");
+				System.out.println("(1) Try with different username");
+				System.out.println("(2) Retry password");
+				input = sc.nextInt();
+				if(input == 1) {
+					Service.loginHelper();
+				}
+			}
+		}
+		return username;
 	}
 	
 	static WarehouseWorker workerLogin() throws Exception {
@@ -76,67 +322,58 @@ public class Service {
 		String username = loginHelper();
 		return getHRByUsername(username);
 	}
-
-	public static void HRHome(HumanResources humanResources) throws Exception {
+	static void edit(HumanResources humanResources) throws Exception {
 		Scanner sc = new Scanner(System.in);
-		System.out.println("Please input the number corresponding to what you would like to do:");
-		System.out.println("(1) Edit worker hours");
-		System.out.println("(2) Hire new worker");
-		System.out.println("(3) Fire worker");
-		System.out.println("(4) Logout");
-		int choice = Integer.valueOf(sc.nextLine());
-		if(choice == 1) {
-			System.out.println("Enter the worker's username");
-			WarehouseWorker w = getWarehouseWorkerByUsername(sc.nextLine());
-			System.out.println("Please type the workers hours, comma seperated by day (day 1 is sunday)");
-			System.out.println("Example (normal 9-5): 0,8,8,8,8,8,0");
-			String[] s = sc.nextLine().split(",");
-			int[] hours = {0,0,0,0,0,0,0};
-			for(int i = 0; i < 7; i++) {
-				hours[i] = Integer.valueOf(s[i]);
-			}
-			w.setHours(hours);
-			System.out.println("Worker's hours updated");
-			HRHome(humanResources);
-		}else if(choice == 2) {
-			WarehouseWorker w = new WarehouseWorker();
-			System.out.println("Please enter the username for this worker");
-			w.setUsername(sc.nextLine());
-			System.out.println("How much will this worker get paid?");
-			w.setSalary(Integer.valueOf(sc.nextLine()));
-			w.setSkillLevel(0);
-			System.out.println("Please type the workers hours, comma seperated by day (day 1 is sunday)");
-			System.out.println("Example (normal 9-5): 0,8,8,8,8,8,0");
-			String[] s = sc.nextLine().split(",");
-			int[] hours = {0,0,0,0,0,0,0};
-			for(int i = 0; i < 7; i++) {
-				hours[i] = Integer.valueOf(s[i]);
-			}
-			w.setHours(hours);
-			warehouse.getWorkers().add(w);
-			HRHome(humanResources);
-		}else if(choice == 3) {
-			System.out.println("Please enter the username of the worker you would like to fire:");
-			WarehouseWorker w = getWarehouseWorkerByUsername(sc.nextLine());
-			System.out.println("Username: " + w.getUsername());
-			System.out.println("Salary: $" + w.getSalary() + "/hour");
-			System.out.println("Skill Level: " + w.getSkillLevel());
-			String hours = "";
-	    	for(int i = 0; i < w.getHours().length; i++) {
-	    		hours = hours.concat(w.getHours()[i] + ",");
-	    	}
-	    	System.out.println("Hours: " + hours.substring(0, 13));
-			System.out.println("Are you sure you want to fire this worker? (y/n)");
-			if(sc.nextLine().equals("y")) {
-				warehouse.getWorkers().remove(w);
-				System.out.println("Worker removed from system");
-			}
-			HRHome(humanResources);
-		}else if(choice == 4) {
-			Database.saveHR(HR, HUMAN_RESOURCES);
-			Database.saveWorkers(warehouse.getWorkers(), WAREHOUSE_WORKERS);
-			home();
+		System.out.println("Enter the worker's username");
+		WarehouseWorker w = getWarehouseWorkerByUsername(sc.nextLine());
+		System.out.println("Please type the workers hours, comma seperated by day (day 1 is sunday)");
+		System.out.println("Example (normal 9-5): 0,8,8,8,8,8,0");
+		String[] s = sc.nextLine().split(",");
+		int[] hours = {0,0,0,0,0,0,0};
+		for(int i = 0; i < 7; i++) {
+			hours[i] = Integer.valueOf(s[i]);
 		}
+		w.setHours(hours);
+		System.out.println("Worker's hours updated");
+		HRHome(humanResources);
+	}
+	static void hire(HumanResources humanResources) throws Exception {
+		Scanner sc = new Scanner(System.in);
+		WarehouseWorker w = new WarehouseWorker();
+		System.out.println("Please enter the username for this worker");
+		w.setUsername(sc.nextLine());
+		System.out.println("How much will this worker get paid?");
+		w.setSalary(Integer.valueOf(sc.nextLine()));
+		w.setSkillLevel(0);
+		System.out.println("Please type the workers hours, comma seperated by day (day 1 is sunday)");
+		System.out.println("Example (normal 9-5): 0,8,8,8,8,8,0");
+		String[] s = sc.nextLine().split(",");
+		int[] hours = {0,0,0,0,0,0,0};
+		for(int i = 0; i < 7; i++) {
+			hours[i] = Integer.valueOf(s[i]);
+		}
+		w.setHours(hours);
+		warehouse.getWorkers().add(w);
+		HRHome(humanResources);
+	}
+	static void fire(HumanResources humanResources) throws Exception {
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Please enter the username of the worker you would like to fire:");
+		WarehouseWorker w = getWarehouseWorkerByUsername(sc.nextLine());
+		System.out.println("Username: " + w.getUsername());
+		System.out.println("Salary: $" + w.getSalary() + "/hour");
+		System.out.println("Skill Level: " + w.getSkillLevel());
+		String hours = "";
+    	for(int i = 0; i < w.getHours().length; i++) {
+    		hours = hours.concat(w.getHours()[i] + ",");
+    	}
+    	System.out.println("Hours: " + hours.substring(0, 13));
+		System.out.println("Are you sure you want to fire this worker? (y/n)");
+		if(sc.nextLine().equals("y")) {
+			warehouse.getWorkers().remove(w);
+			System.out.println("Worker removed from system");
+		}
+		HRHome(humanResources);
 	}
 	static HumanResources getHRByUsername(String username) {
 		for(HumanResources h : HR) {
@@ -154,149 +391,117 @@ public class Service {
 		}
 		return null;
 	}
-	static void workerHome(WarehouseWorker worker) throws Exception{
-		//add functionality for things the worker can do (see customerHome for example)
+	static void survey(WarehouseWorker worker) throws Exception {
 		Scanner sc = new Scanner(System.in);
-		System.out.println("Please input the number corresponding to what you would like to do:");
-		System.out.println("(1) Take skill survey");
-		System.out.println("(2) View today's hours");
-		System.out.println("(3) Clock in");
-		System.out.println("(4) Collect pay");
-		System.out.println("(5) Logout");
-		int choice = Integer.valueOf(sc.nextLine());
-		if(choice == 1) {
-			System.out.println("Please fill out the following survey");
-			System.out.println("Do you have a college degree? (y/n)");
-			String inp = sc.nextLine();
-			if(inp.equals("y")) {
-				System.out.println("What was your major?");
-				System.out.println("1. Engineering");
-				System.out.println("2. Science");
-				System.out.println("3. Business");
-				System.out.println("4. Biology");
-				System.out.println("5. Other");
-				worker.setSkillLevel(Integer.valueOf(sc.nextLine()));
-			}
-			workerHome(worker);
-		}else if(choice == 2) {
-			Timestamp t = new Timestamp(System.currentTimeMillis());
-			System.out.println("To change your hours visit an HR representative");
-			System.out.println("Today you work " + worker.getHours()[t.getDay()] + " Hours");
-			workerHome(worker);
-		}else if(choice == 3) {
-			Timestamp t = new Timestamp(System.currentTimeMillis());
-			int hours = t.getHours() + worker.getHours()[t.getDay()];
-			int minutes = t.getMinutes();
-			int seconds = t.getSeconds();
-			System.out.println("You will be automatically clocked out at " + hours + ":" + minutes + ":" + seconds);
-			workerHome(worker);
-		}else if(choice == 4) {
-			Timestamp t = new Timestamp(System.currentTimeMillis());
-			if(t.getDay() != 5) {
-				System.out.println("It must be friday for you to get paid");
-				workerHome(worker);
-			}else {
-				int sum = IntStream.of(worker.getHours()).sum();
-				int total = sum*worker.getSalary();
-				int tax = (int) Math.round(total*0.12);
-				int afterTaxTotal = total - tax;
-				System.out.println("Your paycheck will be deposited with:");
-				System.out.println("Total: $" + total);
-				System.out.println("Taxes: $" + tax);
-				System.out.println("Final: $" + afterTaxTotal);
-				workerHome(worker);
-			}
-		}else if(choice == 5) {
-			Database.saveWorkers(warehouse.getWorkers(), WAREHOUSE_WORKERS);
-			home();
+		System.out.println("Please fill out the following survey");
+		System.out.println("Do you have a college degree? (y/n)");
+		String inp = sc.nextLine();
+		if(inp.equals("y")) {
+			System.out.println("What was your major?");
+			System.out.println("1. Engineering");
+			System.out.println("2. Science");
+			System.out.println("3. Business");
+			System.out.println("4. Biology");
+			System.out.println("5. Other");
+			worker.setSkillLevel(Integer.valueOf(sc.nextLine()));
 		}
-		
+		workerHome(worker);
 	}
-
+	static void hours(WarehouseWorker worker) throws Exception {
+		Timestamp t = new Timestamp(System.currentTimeMillis());
+		System.out.println("To change your hours visit an HR representative");
+		System.out.println("Today you work " + worker.getHours()[t.getDay()] + " Hours");
+		workerHome(worker);
+	}
+	static void clockIn(WarehouseWorker worker) throws Exception {
+		Timestamp t = new Timestamp(System.currentTimeMillis());
+		int hours = t.getHours() + worker.getHours()[t.getDay()];
+		int minutes = t.getMinutes();
+		int seconds = t.getSeconds();
+		System.out.println("You will be automatically clocked out at " + hours + ":" + minutes + ":" + seconds);
+		workerHome(worker);
+	}
+	static void pay(WarehouseWorker worker) throws Exception {
+		Timestamp t = new Timestamp(System.currentTimeMillis());
+		if(t.getDay() != 5) {
+			System.out.println("It must be friday for you to get paid");
+			workerHome(worker);
+		}else {
+			int sum = IntStream.of(worker.getHours()).sum();
+			int total = sum*worker.getSalary();
+			int tax = (int) Math.round(total*0.12);
+			int afterTaxTotal = total - tax;
+			System.out.println("Your paycheck will be deposited with:");
+			System.out.println("Total: $" + total);
+			System.out.println("Taxes: $" + tax);
+			System.out.println("Final: $" + afterTaxTotal);
+			workerHome(worker);
+		}
+	}
 	//Start of use cases
 	public static void home() throws Exception {
-		Scanner scanner = new Scanner(System.in);
-		System.out.println("Please type the corresponding number for what you would like to do:");
-		System.out.println("(1) Login");
-		System.out.println("(2) Sign Up");
-		int input = scanner.nextInt();
-		if(input == 1) {
-			login();
-		}else if(input == 2) {
-			signup();
-		}else {
-			throw new Exception("Bad User Input");
+		CMDDisplay display = new CMDDisplay();
+		display.addCommand(new Login());
+		display.addCommand(new Signup());
+		display.display();
+	}
+	static void addItem(SalesPerson salesPerson) throws Exception {
+		Scanner sc = new Scanner(System.in);
+		Item item = new Item();
+		System.out.println("Please type the item name:");
+		if(sc.hasNextLine()) {
+			item.setName(sc.nextLine());
+		}
+		System.out.println("Please type the item description:");
+		if(sc.hasNextLine()) {
+			item.setDescription(sc.nextLine());
+		}
+		System.out.println("How many items will be available?");
+		item.setNumItems(sc.nextInt());
+		System.out.println("How much will the item cost?");
+		item.setPrice(sc.nextInt());
+		item.setActiveStatus(true);
+		warehouse.getItems().add(item);
+		salesPerson.getItems().add(item);
+		System.out.println("--Item Successfully Added--");
+		salesHome(salesPerson);
+	}
+	static void removeItem(SalesPerson salesPerson) throws Exception {
+		Scanner sc = new Scanner(System.in);
+		if(salesPerson.getItems().size() == 0) {
+			System.out.println("You have no items in the shop");
+			salesHome(salesPerson);
+		}
+		printItemsFromList(salesPerson.getItems());
+		System.out.println("Please type the corresponding number to the Item you would like to remove:");
+		int indexToRemove = sc.nextInt()-1;
+		Item itemToRemove = salesPerson.getItems().get(indexToRemove);
+		for(Item i : warehouse.getAvailableItems()) {
+			if(i.equals(itemToRemove)) {
+				warehouse.getAvailableItems().remove(i);
+			}
+			System.out.println("--Item successfully removed--");
+			salesPerson.getItems().remove(indexToRemove);
+			salesHome(salesPerson);
 		}
 	}
-	static void salesHome(SalesPerson salesPerson) throws Exception {
+	static void disableItem(SalesPerson salesPerson) throws Exception {
 		Scanner sc = new Scanner(System.in);
-		System.out.println("Please input the number corresponding to what you would like to do:");
-		System.out.println("(1) Add New Item");
-		System.out.println("(2) Remove an Item");
-		System.out.println("(3) Temporarily disable an Item");
-		System.out.println("(4) Logout");
-		int choice = sc.nextInt();
-		if(choice == 1) {
-			sc.nextLine();
-			Item item = new Item();
-			System.out.println("Please type the item name:");
-			if(sc.hasNextLine()) {
-				item.setName(sc.nextLine());
-			}
-			System.out.println("Please type the item description:");
-			if(sc.hasNextLine()) {
-				item.setDescription(sc.nextLine());
-			}
-			System.out.println("How many items will be available?");
-			item.setNumItems(sc.nextInt());
-			System.out.println("How much will the item cost?");
-			item.setPrice(sc.nextInt());
-			item.setActiveStatus(true);
-			warehouse.getItems().add(item);
-			salesPerson.getItems().add(item);
-			System.out.println("--Item Successfully Added--");
+		if(salesPerson.getItems().size() == 0) {
+			System.out.println("You have no items in the shop");
 			salesHome(salesPerson);
-		}else if(choice == 2) {
-			if(salesPerson.getItems().size() == 0) {
-				System.out.println("You have no items in the shop");
-				salesHome(salesPerson);
-			}
-			printItemsFromList(salesPerson.getItems());
-			System.out.println("Please type the corresponding number to the Item you would like to remove:");
-			int indexToRemove = sc.nextInt()-1;
-			Item itemToRemove = salesPerson.getItems().get(indexToRemove);
-			for(Item i : warehouse.getAvailableItems()) {
-				if(i.equals(itemToRemove)) {
-					warehouse.getAvailableItems().remove(i);
-				}
-				System.out.println("--Item successfully removed--");
-				salesPerson.getItems().remove(indexToRemove);
-				salesHome(salesPerson);
-			}
-		}else if(choice == 3) {
-			if(salesPerson.getItems().size() == 0) {
-				System.out.println("You have no items in the shop");
-				salesHome(salesPerson);
-			}
-			printItemsFromList(salesPerson.getItems());
-			System.out.println("Please type the corresponding number to the Item you would like to disable:");
-			Item itemToDisable = salesPerson.getItems().get(sc.nextInt()-1);
-			itemToDisable.setActiveStatus(false);
-			for(Item i : warehouse.getAvailableItems()) {
-				if(i.equals(itemToDisable)) {
-					i.setActiveStatus(false);
-				}
-				System.out.println("--Item successfully disabled--");
-				salesHome(salesPerson);
-			}
-		}else if(choice == 4) {
-			Database.saveSalesPeople(salesPeople, SALES_PEOPLE);
-			Database.saveItems(warehouse.getItems(), WAREHOUSE_ITEMS);
-			home();
-		}else {
-			throw new Exception("Bad User Input");
 		}
-		
+		printItemsFromList(salesPerson.getItems());
+		System.out.println("Please type the corresponding number to the Item you would like to disable:");
+		Item itemToDisable = salesPerson.getItems().get(sc.nextInt()-1);
+		itemToDisable.setActiveStatus(false);
+		for(Item i : warehouse.getAvailableItems()) {
+			if(i.equals(itemToDisable)) {
+				i.setActiveStatus(false);
+			}
+			System.out.println("--Item successfully disabled--");
+			salesHome(salesPerson);
+		}
 	}
 	private static SalesPerson findSalesPerson(String username) {
 		for(SalesPerson s : salesPeople) {
@@ -307,67 +512,58 @@ public class Service {
 		return null;
 	}
 	//as long as a customer is logged in they must always return here
-	static void customerHome(Customer currentCustomer) throws Exception {
-		
-		Scanner sc = new Scanner(System.in);
+	static void shop(Customer currentCustomer) throws Exception {
+		currentCustomer.setCart(addToCart());
+		customerHome(currentCustomer);
+	}
+	static void checkout(Customer currentCustomer) throws Exception {
+		currentCustomer.setCart(checkOut(currentCustomer.getCart()));
+		currentCustomer.getReciepts().add(printReciept(currentCustomer));
+		customerHome(currentCustomer);
+	}
+	static void logout() throws Exception {
+		Database.saveCustomers(customers, CUSTOMERS);
+		Database.saveItems(warehouse.getItems(), WAREHOUSE_ITEMS);
+		Database.saveSalesPeople(salesPeople, SALES_PEOPLE);
+		Database.saveHR(HR, HUMAN_RESOURCES);
+		Database.saveWorkers(warehouse.getWorkers(), WAREHOUSE_WORKERS);
+		Database.saveUsersAndPasswords(userAndPasswords, USER_PASS);
+		home();
+	}
+	static void choiceReturns(Customer currentCustomer) throws Exception {
+		returns(currentCustomer);
+		customerHome(currentCustomer);
+	}
+	static void virtualChat(Customer currentCustomer) throws Exception {
 		Marketing ad = new Marketing(warehouse.getAvailableItems());
 		if (flag == 0) {
 			flag=1;
 			ad.sale_of_the_week();
 		}
-		System.out.println("Please type the corresponding number for what you want to do:");
-		System.out.println("(1) Shop");
-		System.out.println("(2) Checkout");
-		System.out.println("(3) Logout");
-		System.out.println("(4) Returns");
-		System.out.println("(5) Virtual Chat");
-		System.out.println("(6) Review Item");
-		int input = sc.nextInt();
-		if(input == 1) {
-			currentCustomer.setCart(addToCart());
-			customerHome(currentCustomer);
-		}else if(input == 2) {
-			currentCustomer.setCart(checkOut(currentCustomer.getCart()));
-			currentCustomer.getReciepts().add(printReciept(currentCustomer));
-			customerHome(currentCustomer);
+		ArrayList<Item> items = ad.VirtualChat();
+		for(Item i : items) {
+			currentCustomer.getCart().addItem(i);
 		}
-		else if(input == 3) {
-			Database.saveItems(warehouse.getItems(), WAREHOUSE_ITEMS);
-			Database.saveCustomers(customers, CUSTOMERS);
-			home();
+		
+		customerHome(currentCustomer);
+	}
+	static void review(Customer currentCustomer) throws Exception {
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Type the name of the Item you would like to review:");
+		String itemName = sc.next();
+		sc.nextLine();
+		if(CheckHistory(currentCustomer, itemName)) {
+			Item itemToReview = findBoughtItemByName(currentCustomer, itemName);
+			System.out.println("How many stars do you give the Item from 1-5:");
+			int stars = Integer.valueOf(sc.nextLine());
+			System.out.println("Type any comments you have about the Item:");
+			String textReview = sc.nextLine();
+			Review review = new Review(stars, textReview);
+			itemToReview.getReviews().add(review);
+		}else {
+			System.out.println("You must purchase this Item to review it");
 		}
-		else if(input == 4) {
-			returns(currentCustomer);
-			customerHome(currentCustomer);
-		}
-		else if (input == 5) {
-			ArrayList<Item> items = ad.VirtualChat();
-			for(Item i : items) {
-				currentCustomer.getCart().addItem(i);
-			}
-			
-			customerHome(currentCustomer);
-		}else if (input == 6) {
-			System.out.println("Type the name of the Item you would like to review:");
-			String itemName = sc.next();
-			sc.nextLine();
-			if(CheckHistory(currentCustomer, itemName)) {
-				Item itemToReview = findBoughtItemByName(currentCustomer, itemName);
-				System.out.println("How many stars do you give the Item from 1-5:");
-				int stars = Integer.valueOf(sc.nextLine());
-				System.out.println("Type any comments you have about the Item:");
-				String textReview = sc.nextLine();
-				Review review = new Review(stars, textReview);
-				itemToReview.getReviews().add(review);
-			}else {
-				System.out.println("You must purchase this Item to review it");
-			}
-			
-			customerHome(currentCustomer);
-		}
-		else {
-			throw new Exception("Bad user input");
-		}
+		customerHome(currentCustomer);
 	}
 	private static boolean CheckHistory(Customer currentCustomer, String a){
 		ArrayList<Reciept> reciept = currentCustomer.getReciepts();
